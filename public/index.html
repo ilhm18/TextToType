@@ -1,190 +1,117 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Tulisan Tangan di Kertas</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background: #dcdcdc;
-        font-family: Arial, sans-serif;
+<head>
+  <meta charset="UTF-8">
+  <title>Tulisan Tangan di Kertas</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #dcdcdc;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .paper {
+      width: 820px;
+      min-height: 1100px;
+      background-image: url('public/notebook.jpg');
+      background-size: cover;
+      background-position: center;
+      padding: 120px 80px 80px 120px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      outline: none;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 38px;
+      font-size: 22px;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+
+    .toolbar button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* FONT DASAR (NANTI BISA DIGANTI FONT CUSTOM) */
+    @font-face {
+      font-family: 'HandwriteBase';
+      src: local('Comic Sans MS');
+    }
+
+    .handwriting span {
+      display: inline-block;
+      font-family: 'HandwriteBase', cursive;
+    }
+  </style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>Tulisan Tangan</b>
+  <button onclick="clearPaper()">Hapus Semua</button>
+  <small style="display:block;margin-top:10px">Ketik langsung di kertas</small>
+</div>
+
+<div class="container">
+  <div id="paper" class="paper handwriting" contenteditable="true"></div>
+</div>
+
+<script>
+  const paper = document.getElementById('paper');
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function humanizeText() {
+    const text = paper.innerText;
+    paper.innerHTML = '';
+
+    for (let char of text) {
+      if (char === '\n') {
+        paper.appendChild(document.createElement('br'));
+        continue;
       }
 
-      .container {
-        display: flex;
-        justify-content: center;
-        padding: 40px;
-      }
+      const span = document.createElement('span');
+      span.textContent = char;
 
-      .paper {
-        width: 820px;
-        min-height: 1100px;
-        background-image: url("public/notebook.jpg");
-        background-size: cover;
-        background-position: center;
-        padding: 120px 80px 80px 120px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        outline: none;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        line-height: 38px;
-        font-size: 22px;
-        cursor: text;
-        position: relative;
-      }
+      // Variasi manusiawi
+      span.style.transform = `translateY(${random(-1.5, 1.5)}px) rotate(${random(-2, 2)}deg)`;
+      span.style.marginRight = random(0.5, 2) + 'px';
 
-      .toolbar {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background: #fff;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        z-index: 10;
-      }
+      paper.appendChild(span);
+    }
+  }
 
-      .toolbar button {
-        padding: 8px 12px;
-        margin-top: 10px;
-        width: 100%;
-        cursor: pointer;
-      }
+  function clearPaper() {
+    if (confirm('Yakin ingin menghapus semua tulisan?')) {
+      paper.innerHTML = '';
+    }
+  }
 
-      /* FONT DASAR (NANTI BISA DIGANTI FONT CUSTOM) */
-      @font-face {
-        font-family: "HandwriteBase";
-        src: local("Segoe Script"), local("Brush Script MT"),
-          local("Lucida Handwriting"), local("Comic Sans MS");
-      }
+  paper.addEventListener('input', () => {
+    humanizeText();
+  });
+</script>
 
-      .handwriting span {
-        display: inline-block;
-        font-family: "HandwriteBase", "Segoe Script", cursive;
-        transition: none;
-        font-style: normal;
-        font-weight: normal;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="toolbar">
-      <b>Tulisan Tangan</b>
-      <button onclick="clearPaper()">Hapus Semua</button>
-      <small style="display: block; margin-top: 10px"
-        >Ketik langsung di kertas</small
-      >
-    </div>
-
-    <div class="container">
-      <div id="paper" class="paper handwriting" contenteditable="true"></div>
-    </div>
-
-    <script>
-      const paper = document.getElementById("paper");
-      let isProcessing = false;
-
-      function random(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-
-      function saveCursorPosition() {
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          const preCaretRange = range.cloneRange();
-          preCaretRange.selectNodeContents(paper);
-          preCaretRange.setEnd(range.endContainer, range.endOffset);
-          return preCaretRange.toString().length;
-        }
-        return 0;
-      }
-
-      function restoreCursorPosition(position) {
-        const selection = window.getSelection();
-        const range = document.createRange();
-        let charCount = 0;
-        let nodeStack = [paper];
-        let node,
-          foundStart = false;
-
-        while (!foundStart && (node = nodeStack.pop())) {
-          if (node.nodeType === 3) {
-            const nextCharCount = charCount + node.length;
-            if (position <= nextCharCount) {
-              range.setStart(node, position - charCount);
-              range.collapse(true);
-              foundStart = true;
-            }
-            charCount = nextCharCount;
-          } else {
-            let i = node.childNodes.length;
-            while (i--) {
-              nodeStack.push(node.childNodes[i]);
-            }
-          }
-        }
-
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-
-      function humanizeText() {
-        if (isProcessing) return;
-        isProcessing = true;
-
-        const cursorPos = saveCursorPosition();
-        const text = paper.innerText;
-        paper.innerHTML = "";
-
-        for (let char of text) {
-          if (char === "\n") {
-            paper.appendChild(document.createElement("br"));
-            continue;
-          }
-
-          const span = document.createElement("span");
-          span.textContent = char;
-
-          // Variasi sangat halus untuk tulisan yang lebih natural
-          const yOffset = random(-0.8, 0.8);
-          const rotation = random(-2, 2);
-          const letterSpacing = random(0, 1.2);
-          const scale = random(0.96, 1.04);
-
-          span.style.transform = `translateY(${yOffset}px) rotate(${rotation}deg) scale(${scale})`;
-          span.style.marginRight = letterSpacing + "px";
-
-          // Variasi opacity sangat tipis
-          span.style.opacity = random(0.9, 1);
-
-          paper.appendChild(span);
-        }
-
-        restoreCursorPosition(cursorPos);
-        isProcessing = false;
-      }
-
-      function clearPaper() {
-        if (confirm("Yakin ingin menghapus semua tulisan?")) {
-          paper.innerHTML = "";
-        }
-      }
-
-      paper.addEventListener("input", () => {
-        requestAnimationFrame(humanizeText);
-      });
-
-      // Membuat paper bisa diklik di mana saja untuk mengetik
-      paper.addEventListener("click", () => {
-        paper.focus();
-      });
-
-      // Auto focus saat halaman dimuat
-      window.addEventListener("load", () => {
-        paper.focus();
-      });
-    </script>
-  </body>
+</body>
 </html>
